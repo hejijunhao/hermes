@@ -1,6 +1,6 @@
 # See https://fly.io/docs/reference/configuration/
 app = 'hermes-terminal'
-primary_region = 'ams'
+primary_region = 'sin'
 
 [build]
 
