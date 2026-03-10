@@ -26,6 +26,11 @@ The agent could hang indefinitely when the upstream LLM API was overloaded or re
 ### Added
 
 - **`HERMES_AGENT_TIMEOUT`** env var — configurable timeout in seconds (default `90`). Can be tuned per deployment via `.env` or Fly.io secrets.
+- **`HERMES_API_KEY`** deployed to Fly.io — the Nous Research direct inference provider is now live, bypassing OpenRouter entirely for Nous models.
+
+### Changed
+
+- **Nous provider model list** (`server/main.py`) — updated from Hermes 3 (70B, DeepHermes 8B) to Hermes 4 (405B, 70B) to match the current Nous inference API. The 405B is now available directly through Nous without needing OpenRouter.
 
 ---
 

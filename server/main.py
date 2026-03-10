@@ -29,8 +29,8 @@ PROVIDERS = {
         "base_url": "https://inference-api.nousresearch.com/v1",
         "api_key_env": "HERMES_API_KEY",
         "models": [
-            {"id": "nousresearch/hermes-3-llama-3.1-70b", "label": "Hermes 3 70B"},
-            {"id": "nousresearch/deephermes-3-llama-3-8b-preview", "label": "DeepHermes 3 8B"},
+            {"id": "Hermes-4-405B", "label": "Hermes 4 405B"},
+            {"id": "Hermes-4-70B", "label": "Hermes 4 70B"},
         ],
     },
     "openrouter": {
