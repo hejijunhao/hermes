@@ -2,10 +2,33 @@
 
 ## Index
 
+- [0.3.0 — Dynamic Model Switching & Nous Direct API](#030--dynamic-model-switching--nous-direct-api)
 - [0.2.2 — PYTHONPATH Install Strategy](#022--pythonpath-install-strategy)
 - [0.2.1 — Fly.io Deployment Fix](#021--flyio-deployment-fix)
 - [0.2.0 — Hermes Agent Integration](#020--hermes-agent-integration)
 - [0.1.0 — Project Scaffolding](#010--project-scaffolding)
+
+---
+
+## 0.3.0 — Dynamic Model Switching & Nous Direct API
+
+**2026-03-10**
+
+Added a model selector dropdown to the terminal header so the active LLM can be switched on-the-fly without redeploying. Also added support for the Nous Research inference API as a direct provider alongside OpenRouter, reducing latency by skipping the OpenRouter proxy layer.
+
+### Added
+
+- **Model selector UI** (`frontend/index.html`, `frontend/style.css`) — `<select>` dropdown in the header bar, styled to match the Evangelion aesthetic. Models are grouped by provider using `<optgroup>`.
+- **`GET /api/models`** (`server/main.py`) — REST endpoint that returns available providers and their models. Only providers with a configured API key are included, so the dropdown adapts to the deployment's secrets.
+- **WebSocket `config` message** (`server/main.py`, `frontend/main.js`) — new message type `{ type: "config", model, provider }` lets the frontend set the model/provider per session. Switching models resets conversation history and lazily recreates the agent on the next chat message.
+- **Nous Research direct inference** — support for `HERMES_API_KEY` (from [portal.nousresearch.com](https://portal.nousresearch.com)) hitting `https://inference-api.nousresearch.com/v1` directly, bypassing OpenRouter. Available models: Hermes 3 70B, DeepHermes 3 8B.
+- **Multi-provider architecture** (`server/main.py`) — `PROVIDERS` dict maps each provider to its `base_url`, API key env var, and model catalogue. Adding a new provider is a single dict entry.
+
+### Changed
+
+- **`server/main.py`** — `_create_agent()` now accepts `model` and `provider_id` parameters, passing the appropriate `base_url` and `api_key` to `AIAgent`. Agent creation is deferred until the first chat message (lazy init).
+- **`frontend/main.js`** — `loadModels()` fetches `/api/models` on page load and populates the dropdown. Model selection is sent as a `config` message on change and on each WebSocket reconnect.
+- **`.env.example`** — documented `HERMES_API_KEY` for Nous direct inference.
 
 ---
 

@@ -3,10 +3,51 @@ const input = document.getElementById('input');
 const status = document.getElementById('status');
 const indicator = document.getElementById('indicator');
 const syncRatio = document.getElementById('sync-ratio');
+const modelSelect = document.getElementById('model-select');
 
 let ws;
 let msgCount = 0;
 let processing = false;
+let currentModel = null;
+let currentProvider = null;
+
+// Fetch available models and populate the dropdown
+async function loadModels() {
+  try {
+    const res = await fetch('/api/models');
+    const providers = await res.json();
+    modelSelect.innerHTML = '';
+    providers.forEach(prov => {
+      const group = document.createElement('optgroup');
+      group.label = prov.label;
+      prov.models.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = JSON.stringify({ model: m.id, provider: prov.id });
+        opt.textContent = m.label;
+        group.appendChild(opt);
+      });
+      modelSelect.appendChild(group);
+    });
+    // Select first option as default
+    if (modelSelect.options.length > 0) {
+      const first = JSON.parse(modelSelect.value);
+      currentModel = first.model;
+      currentProvider = first.provider;
+    }
+  } catch (e) {
+    modelSelect.innerHTML = '<option value="">UNAVAILABLE</option>';
+  }
+}
+
+modelSelect.addEventListener('change', () => {
+  if (!modelSelect.value) return;
+  const { model, provider } = JSON.parse(modelSelect.value);
+  currentModel = model;
+  currentProvider = provider;
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ type: 'config', model, provider }));
+  }
+});
 
 function connect() {
   const proto = location.protocol === 'https:' ? 'wss' : 'ws';
@@ -14,6 +55,10 @@ function connect() {
 
   ws.onopen = () => {
     setOnline(true);
+    // Send current model selection on connect
+    if (currentModel) {
+      ws.send(JSON.stringify({ type: 'config', model: currentModel, provider: currentProvider }));
+    }
   };
 
   ws.onmessage = (e) => {
@@ -96,4 +141,4 @@ input.addEventListener('keydown', (e) => {
   }
 });
 
-connect();
+loadModels().then(connect);

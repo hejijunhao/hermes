@@ -105,6 +105,37 @@ html, body {
   animation: pulse 2s infinite;
 }
 
+/* ── Model Selector ──────────────────────── */
+#model-select {
+  background: var(--bg);
+  color: var(--amber);
+  border: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1px;
+  padding: 3px 6px;
+  cursor: pointer;
+  outline: none;
+  text-transform: uppercase;
+  max-width: 200px;
+}
+
+#model-select:hover,
+#model-select:focus {
+  border-color: var(--amber);
+  box-shadow: 0 0 4px rgba(244, 162, 97, 0.3);
+}
+
+#model-select option {
+  background: var(--bg-panel);
+  color: var(--text);
+}
+
+#model-select optgroup {
+  color: var(--red);
+  font-style: normal;
+}
+
 .sync {
   font-size: 11px;
   color: var(--text-dim);
