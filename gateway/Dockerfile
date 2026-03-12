@@ -1,16 +1,14 @@
 FROM python:3.11-slim
 
-# System deps: git for cloning, nodejs for hermes browser tools
+# System deps: nodejs for hermes browser tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
         git curl ca-certificates nodejs npm \
     && rm -rf /var/lib/apt/lists/*
 
-# Clone hermes-agent and install with all extras
-RUN git clone --depth 1 --recurse-submodules \
-        https://github.com/NousResearch/hermes-agent.git /opt/hermes-agent \
-    && cd /opt/hermes-agent \
-    && pip install --no-cache-dir -e ".[all]" \
-    && rm -rf .git
+# Copy vendored hermes-agent source and install with all extras
+COPY hermes-agent/ /opt/hermes-agent/
+RUN cd /opt/hermes-agent \
+    && pip install --no-cache-dir -e ".[all]"
 
 # Web app deps (FastAPI + xterm.js bridge)
 RUN pip install --no-cache-dir uvicorn fastapi python-multipart
@@ -26,9 +24,9 @@ RUN cp /opt/hermes-agent/.env.example /root/.hermes/.env \
 RUN echo "You are Hermes, an AI assistant by Nous Research." > /root/.hermes/SOUL.md
 
 # Copy our web app
-COPY app.py /app/app.py
-COPY static/ /app/static/
-COPY entrypoint.sh /entrypoint.sh
+COPY gateway/app.py /app/app.py
+COPY gateway/static/ /app/static/
+COPY gateway/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 EXPOSE 8080

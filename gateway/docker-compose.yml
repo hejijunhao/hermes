@@ -1,8 +1,8 @@
 services:
   hermes-agent:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: gateway/Dockerfile
     ports:
       - "8081:8080"
     env_file:

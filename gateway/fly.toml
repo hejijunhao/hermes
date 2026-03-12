@@ -1,10 +1,10 @@
-# Hermes Agent — stock CLI served via ttyd web terminal
-# Deploy: fly deploy --config gateway/fly.toml --dockerfile gateway/Dockerfile
+# Hermes Agent — vendored CLI served via web terminal
+# Deploy: fly deploy --config gateway/fly.toml (from repo root)
 app = 'hermes-terminal'
 primary_region = 'sin'
 
 [build]
-  dockerfile = "Dockerfile"
+  dockerfile = "gateway/Dockerfile"
 
 [http_service]
   internal_port = 8080

@@ -9,7 +9,7 @@ down:
 
 # Fly.io
 deploy:
-	cd gateway && fly deploy
+	fly deploy --config gateway/fly.toml
 
 logs:
 	fly logs --config gateway/fly.toml

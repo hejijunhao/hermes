@@ -2,6 +2,7 @@
 
 ## Index
 
+- [2.1.0 — Vendored Agent Source](#210--vendored-agent-source)
 - [2.0.0 — Dead Code Removal & Repo Rename](#200--dead-code-removal--repo-rename)
 - [1.0.0 — Hermes Agent Gateway](#100--hermes-agent-gateway)
 - [0.4.1 — Agent Timeout Guard](#041--agent-timeout-guard)
@@ -12,6 +13,31 @@
 - [0.2.1 — Fly.io Deployment Fix](#021--flyio-deployment-fix)
 - [0.2.0 — Hermes Agent Integration](#020--hermes-agent-integration)
 - [0.1.0 — Project Scaffolding](#010--project-scaffolding)
+
+---
+
+## 2.1.0 — Vendored Agent Source
+
+**2026-03-12**
+
+The Hermes agent was previously installed at Docker build time by cloning the upstream `NousResearch/hermes-agent` GitHub repo. This made the agent's internals read-only — any customisation (memory backends, tool policies, prompt rewrites) required maintaining a separate fork. This release vendors the full agent source into the repository, unlocking direct source-level modification. The immediate motivation is integrating the Elephantasm framework for long-term agentic memory, which requires changes to the agent's core reasoning loop that are impossible through configuration alone.
+
+### Added
+
+- **`hermes-agent/`** — vendored copy of the full [hermes-agent](https://github.com/NousResearch/hermes-agent) source tree, checked into the repository. Contains the CLI entry point (`cli.py`), agent core (`agent/`), tool implementations (`tools/`), and `pyproject.toml` for editable installation. This is the codebase that will be modified for Elephantasm integration.
+
+### Changed
+
+- **`gateway/Dockerfile`** — replaced `git clone --depth 1 https://github.com/NousResearch/hermes-agent.git` with `COPY hermes-agent/ /opt/hermes-agent/`. The agent is now built from the local vendored source rather than fetched from GitHub at build time. `git` remains in the system deps as a transitive build requirement. All `COPY` paths updated to be relative to the new repo-root build context (`gateway/app.py`, `gateway/static/`, `gateway/entrypoint.sh`).
+- **`gateway/docker-compose.yml`** — build context widened from `.` (gateway only) to `..` (repo root), with `dockerfile: gateway/Dockerfile`. Required because the Docker build now needs to reach both `hermes-agent/` and `gateway/` from the same context.
+- **`gateway/fly.toml`** — `dockerfile` path changed from `Dockerfile` to `gateway/Dockerfile` to match the repo-root build context used by `fly deploy`.
+- **`Makefile`** — `deploy` target changed from `cd gateway && fly deploy` to `fly deploy --config gateway/fly.toml`, running from the repo root so the build context includes `hermes-agent/`.
+
+### Architecture
+
+The Docker build context is now the repository root rather than the `gateway/` subdirectory. This is the key structural change — Docker's `COPY` instruction can only reference files within the build context, so including both `hermes-agent/` (agent source) and `gateway/` (web app) requires a context that encompasses both. The `pip install -e ".[all]"` editable install is preserved, meaning `/opt/hermes-agent/` inside the container is both the install target and the live source tree.
+
+This sets the stage for Elephantasm integration: the agent's memory subsystem, tool dispatch, and conversation lifecycle are now directly editable in `hermes-agent/` and version-controlled alongside the gateway.
 
 ---
 
