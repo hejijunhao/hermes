@@ -10,7 +10,7 @@ COPY hermes-agent/ /opt/hermes-agent/
 RUN cd /opt/hermes-agent \
     && mkdir -p tinker-atropos/logs \
     && pip install --no-cache-dir -e ".[all]" \
-    && pip install --no-cache-dir minisweagent
+    && pip install --no-cache-dir mini-swe-agent
 
 # Web app deps (FastAPI + xterm.js bridge)
 RUN pip install --no-cache-dir uvicorn fastapi python-multipart

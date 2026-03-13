@@ -2,6 +2,7 @@
 
 ## Index
 
+- [3.0.3 — Dockerfile minisweagent Fix](#303--dockerfile-minisweagent-fix)
 - [3.0.2 — Deployment Runtime Fixes](#302--deployment-runtime-fixes)
 - [3.0.1 — Fly.io App Rename](#301--flyio-app-rename)
 - [3.0.0 — Elephantasm Integration](#300--elephantasm-integration)
@@ -16,6 +17,20 @@
 - [0.2.1 — Fly.io Deployment Fix](#021--flyio-deployment-fix)
 - [0.2.0 — Hermes Agent Integration](#020--hermes-agent-integration)
 - [0.1.0 — Project Scaffolding](#010--project-scaffolding)
+
+---
+
+## 3.0.3 — Dockerfile minisweagent Fix
+
+**2026-03-13**
+
+The 3.0.2 Dockerfile added `pip install minisweagent` to fix a missing import, but `minisweagent` is not a valid PyPI package name — the correct package is `mini-swe-agent` (with hyphens), which installs as the `minisweagent` importable module. This is Nous Research's terminal execution backend providing sandboxed environments (local, Docker, Modal, Singularity) for the terminal tool.
+
+The upstream hermes-agent repo includes it as a git submodule (`mini-swe-agent/`) installed via `pip install -e "./mini-swe-agent"`. Since we vendored the agent without submodules, it was missing entirely. The gateway runs on an isolated Fly.io machine with all toolsets enabled (including terminal), so the package is needed.
+
+### Fixed
+
+- **`gateway/Dockerfile`** — replaced `pip install --no-cache-dir minisweagent` (non-existent PyPI package) with `pip install --no-cache-dir mini-swe-agent` (correct package name, v2.2.7).
 
 ---
 
