@@ -2,6 +2,7 @@
 
 ## Index
 
+- [3.0.2 — Deployment Runtime Fixes](#302--deployment-runtime-fixes)
 - [3.0.1 — Fly.io App Rename](#301--flyio-app-rename)
 - [3.0.0 — Elephantasm Integration](#300--elephantasm-integration)
 - [2.1.0 — Vendored Agent Source](#210--vendored-agent-source)
@@ -15,6 +16,19 @@
 - [0.2.1 — Fly.io Deployment Fix](#021--flyio-deployment-fix)
 - [0.2.0 — Hermes Agent Integration](#020--hermes-agent-integration)
 - [0.1.0 — Project Scaffolding](#010--project-scaffolding)
+
+---
+
+## 3.0.2 — Deployment Runtime Fixes
+
+**2026-03-13**
+
+First deploy of `hermes-alpha` crashed at startup with two errors: `rl_training_tool.py` failed to create a logs directory under the missing `tinker-atropos/` submodule path, and `terminal_tool.py` couldn't import `minisweagent` (the mini-swe-agent execution backend).
+
+### Fixed
+
+- **`gateway/Dockerfile`** — added `mkdir -p tinker-atropos/logs` before pip install. The `rl_training_tool` module creates this directory at import time via `LOGS_DIR.mkdir(exist_ok=True)`, but `exist_ok` only skips if the directory itself exists — it still fails if the *parent* (`tinker-atropos/`) is missing.
+- **`gateway/Dockerfile`** — added `pip install --no-cache-dir minisweagent`. This package provides the terminal tool's execution backend (`minisweagent.environments.*`) and is imported at runtime but not declared in hermes-agent's `pyproject.toml` dependencies.
 
 ---
 

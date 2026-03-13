@@ -8,7 +8,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy vendored hermes-agent source and install with all extras
 COPY hermes-agent/ /opt/hermes-agent/
 RUN cd /opt/hermes-agent \
-    && pip install --no-cache-dir -e ".[all]"
+    && mkdir -p tinker-atropos/logs \
+    && pip install --no-cache-dir -e ".[all]" \
+    && pip install --no-cache-dir minisweagent
 
 # Web app deps (FastAPI + xterm.js bridge)
 RUN pip install --no-cache-dir uvicorn fastapi python-multipart
