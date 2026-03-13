@@ -2,6 +2,7 @@
 
 ## Index
 
+- [3.0.1 — Fly.io App Rename](#301--flyio-app-rename)
 - [3.0.0 — Elephantasm Integration](#300--elephantasm-integration)
 - [2.1.0 — Vendored Agent Source](#210--vendored-agent-source)
 - [2.0.0 — Dead Code Removal & Repo Rename](#200--dead-code-removal--repo-rename)
@@ -14,6 +15,22 @@
 - [0.2.1 — Fly.io Deployment Fix](#021--flyio-deployment-fix)
 - [0.2.0 — Hermes Agent Integration](#020--hermes-agent-integration)
 - [0.1.0 — Project Scaffolding](#010--project-scaffolding)
+
+---
+
+## 3.0.1 — Fly.io App Rename
+
+**2026-03-13**
+
+Renamed the Fly.io app from `hermes-terminal` to `hermes-alpha` to match the repository name. Fly doesn't support renaming apps, so this was a create-new/destroy-old migration.
+
+### Changed
+
+- **`gateway/fly.toml`** — `app` changed from `hermes-terminal` to `hermes-alpha`.
+
+### Fixed
+
+- **`gateway/fly.toml`** — `dockerfile` path changed from `gateway/Dockerfile` to `Dockerfile`. When deploying with `fly deploy --config gateway/fly.toml` from the repo root, Fly resolves the dockerfile path relative to the config file's directory (`gateway/`), so the previous value resolved to `gateway/gateway/Dockerfile`.
 
 ---
 
