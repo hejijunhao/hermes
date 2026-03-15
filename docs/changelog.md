@@ -2,6 +2,7 @@
 
 ## Index
 
+- [4.2.0 — Session Resilience & Auto-Reconnect](#420--session-resilience--auto-reconnect)
 - [4.1.0 — Resilient PTY & Messaging Gateway Sidecar](#410--resilient-pty--messaging-gateway-sidecar)
 - [4.0.0 — Overseer Identity & Blank-Slate Bootstrap](#400--overseer-identity--blank-slate-bootstrap)
 - [3.2.1 — Alpha Branding](#321--alpha-branding)
@@ -23,6 +24,46 @@
 - [0.2.1 — Fly.io Deployment Fix](#021--flyio-deployment-fix)
 - [0.2.0 — Hermes Agent Integration](#020--hermes-agent-integration)
 - [0.1.0 — Project Scaffolding](#010--project-scaffolding)
+
+---
+
+## 4.2.0 — Session Resilience & Auto-Reconnect
+
+**2026-03-15**
+
+The 4.1.0 release added PTY crash detection (`_watch_proc()`), but the WebSocket session still hung for ~15 minutes after the PTY died. Root cause: `asyncio.gather()` waits for *all* tasks, so when `pty_to_ws` detected the dead PTY and broke out, `ws_to_pty` remained blocked on `await ws.receive()` until the TCP connection timed out. The browser had no idea the session was dead — it just showed a frozen terminal. Separately, when a laptop went to sleep and woke up, the stale WebSocket was never detected, leaving users staring at a terminal that would never respond.
+
+This release fixes both sides: the server now tears down the full session immediately when either direction fails, and the browser detects disconnects and reconnects automatically.
+
+### Fixed
+
+- **Zombie WebSocket after PTY death** (`gateway/app.py`) — replaced `asyncio.gather(pty_to_ws(), ws_to_pty())` with `asyncio.wait(return_when=FIRST_COMPLETED)`. When either the PTY→WS or WS→PTY task finishes (PTY crash, browser disconnect, network drop), the other task is immediately cancelled and cleanup runs. Previously, the surviving task blocked indefinitely — the ~15-minute gap visible in Fly logs between PTY death and connection close was the TCP keepalive timeout.
+- **No WebSocket close on PTY exit** (`gateway/app.py`) — `pty_to_ws` now calls `await ws.close(code=1000)` after sending the red exit message. This actively tears down the WebSocket from the server side, triggering the browser's `onclose` handler immediately instead of waiting for a TCP timeout.
+
+### Added
+
+- **Auto-reconnect with exponential backoff** (`gateway/static/terminal.html`) — unexpected WebSocket closures (network drop, sleep, server restart) now trigger automatic reconnection with exponential backoff: 2s → 4s → 8s → ... → 30s max. The backoff counter resets on successful connect. Clean closures (WebSocket code 1000, meaning the PTY process exited normally) do *not* auto-reconnect — they show a "session ended" message with instructions to reconnect manually.
+- **Sleep/wake detection** (`gateway/static/terminal.html`) — two complementary mechanisms detect when the machine wakes from sleep:
+  - **Timer drift**: a 5-second `setInterval` heartbeat checks if >15 seconds have elapsed since the last tick (JavaScript timers pause during sleep). If the WebSocket is dead on wake, reconnect is triggered immediately.
+  - **Visibility change**: a `visibilitychange` listener fires when the user switches back to the tab, checking WebSocket state and reconnecting if needed.
+- **Distinct disconnect messaging** (`gateway/static/terminal.html`) — the browser now distinguishes between clean exits ("SESSION ENDED — press CONNECT or refresh") and unexpected disconnects ("CONNECTION LOST — reconnecting in Ns..."). The distinction is based on the WebSocket close code: 1000 = clean, anything else = unexpected.
+
+### Changed
+
+- **Task orchestration** (`gateway/app.py`) — the `pty_to_ws` and `ws_to_pty` coroutines are now wrapped in named `asyncio.Task` objects and coordinated via `asyncio.wait()` instead of `asyncio.gather()`. This is the standard pattern for bidirectional bridges where either side finishing should tear down the whole session.
+
+### Architecture
+
+The session lifecycle is now fully symmetric — any single failure triggers complete cleanup:
+
+| Failure | Detection | Cleanup |
+|---|---|---|
+| PTY process dies | `_watch_proc()` pushes sentinel → `pty_to_ws` breaks | Server closes WebSocket (code 1000) → browser shows "session ended" |
+| Browser disconnects | `ws.receive()` yields `websocket.disconnect` → `ws_to_pty` breaks | `asyncio.wait` cancels `pty_to_ws` → PTY terminated |
+| Network drops (sleep) | Browser: timer drift or `visibilitychange` detects stale WS | Browser auto-reconnects with backoff → server spawns new PTY |
+| Server restarts (deploy) | WebSocket closes abnormally (non-1000 code) | Browser auto-reconnects with backoff |
+
+The `asyncio.wait(FIRST_COMPLETED)` + cancel pattern replaces `asyncio.gather()` as the core coordination primitive. This is a one-line semantic change with significant operational impact: session cleanup that previously took ~15 minutes (TCP timeout) now happens in milliseconds.
 
 ---
 

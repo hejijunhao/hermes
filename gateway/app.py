@@ -148,11 +148,12 @@ async def ws_terminal(ws: WebSocket, provider: str = "openrouter"):
         while True:
             data = await queue.get()
             if data is None:
-                # PTY died — notify the browser so it can show a message
+                # PTY died — notify the browser and close the WebSocket
                 try:
                     await ws.send_text(
                         "\r\n\x1b[31m[hermes process exited — refresh to reconnect]\x1b[0m\r\n"
                     )
+                    await ws.close(code=1000, reason="PTY exited")
                 except Exception:
                     pass
                 break
@@ -191,9 +192,16 @@ async def ws_terminal(ws: WebSocket, provider: str = "openrouter"):
             pass
 
     watcher = asyncio.create_task(_watch_proc())
+    task_pty = asyncio.create_task(pty_to_ws())
+    task_ws = asyncio.create_task(ws_to_pty())
 
     try:
-        await asyncio.gather(pty_to_ws(), ws_to_pty())
+        # Wait for EITHER direction to finish, then cancel the other
+        done, pending = await asyncio.wait(
+            [task_pty, task_ws], return_when=asyncio.FIRST_COMPLETED
+        )
+        for t in pending:
+            t.cancel()
     finally:
         watcher.cancel()
         _cleanup_pty(loop, master_fd, proc)
