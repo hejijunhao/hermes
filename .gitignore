@@ -28,3 +28,6 @@ docker-compose.override.yml
 
 # Claude Code
 .claude/
+
+# Backup
+hermes-backup/
