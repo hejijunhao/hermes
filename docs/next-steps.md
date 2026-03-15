@@ -7,13 +7,13 @@ These steps give the Alpha agent (running in the hermes-alpha web terminal) the 
 ## Step 1: Create the Hunter GitHub repo
 
 1. Go to **https://github.com/new**
-2. Owner: your org (e.g. `Crimson-Sun`) or your personal account
+2. Owner: your org (e.g. `kaminocorp`) or your personal account
 3. Repo name: **`hermes-hunter`** (or whatever you prefer)
 4. Make it **Private**
 5. Check **"Add a README file"** (so it's not empty)
 6. Click **Create repository**
 
-Note the full name (e.g. `Crimson-Sun/hermes-hunter`) — you'll need it below.
+Note the full name (e.g. `kaminocorp/hermes-hunter`) — you'll need it below.
 
 ## Step 2: Create a GitHub fine-grained PAT
 
@@ -53,7 +53,7 @@ Run this single command, substituting your actual values:
 fly secrets set \
   GITHUB_TOKEN="github_pat_YOUR_TOKEN_HERE" \
   FLY_API_TOKEN="FlyV1 YOUR_TOKEN_HERE" \
-  HUNTER_REPO="Crimson-Sun/hermes-hunter" \
+  HUNTER_REPO="kaminocorp/hermes-hunter" \
   HUNTER_FLY_APP="hermes-hunter" \
   -a hermes-alpha
 ```

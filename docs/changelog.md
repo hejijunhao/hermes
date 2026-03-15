@@ -2,6 +2,7 @@
 
 ## Index
 
+- [3.2.1 — Alpha Branding](#321--alpha-branding)
 - [3.2.0 — Hunter Access: GitHub + Fly.io Credentials](#320--hunter-access-github--flyio-credentials)
 - [3.1.0 — Elephantasm Inject Fix & Always-On Machine](#310--elephantasm-inject-fix--always-on-machine)
 - [3.0.4 — Terminal Input Focus Fix](#304--terminal-input-focus-fix)
@@ -23,6 +24,19 @@
 
 ---
 
+## 3.2.1 — Alpha Branding
+
+**2026-03-15**
+
+The web terminal header showed the generic "HERMES // AGENT" label, making it visually indistinguishable from a stock Hermes deployment. Since this is the Alpha agent (Path B of the A/B experiment), the UI should immediately signal that it's a modified variant.
+
+### Changed
+
+- **`gateway/static/terminal.html`** — header label changed from `HERMES // AGENT` to `HERMES // ALPHA`. "ALPHA" is styled in the blue accent (`--blue`, `#00b4d8`) with `font-weight: 700` and a matching `text-shadow` glow, contrasting with the red HERMES logo. The `//` divider remains dim, visually separating the two.
+- **`gateway/static/terminal.html`** — page `<title>` updated from "HERMES // AGENT" to "HERMES // ALPHA".
+
+---
+
 ## 3.2.0 — Hunter Access: GitHub + Fly.io Credentials
 
 **2026-03-15**
@@ -33,7 +47,7 @@ The Alpha agent (Path B of the A/B experiment described in [`vision.md`](vision.
 
 - **`flyctl` CLI** (`gateway/Dockerfile`) — installed via `fly.io/install.sh` and added to `PATH`. Gives the Alpha agent the ability to run `fly deploy`, `fly status`, `fly logs`, etc. from within its terminal session to manage the Hunter's Fly app.
 - **Git credential setup** (`gateway/entrypoint.sh`) — when `GITHUB_TOKEN` is set, the entrypoint configures `git config --global credential.helper store` and seeds `/root/.git-credentials` with the token. This means `git clone`, `git push`, and `git pull` against GitHub work without interactive authentication. Identity is set to `hermes-alpha <hermes-alpha@noreply>`.
-- **`HUNTER_REPO` and `HUNTER_FLY_APP` env vars** (`gateway/entrypoint.sh`) — written to `~/.hermes/.env` when set, giving the agent context about where the Hunter's code and deployment live. These are not secrets — just pointers (e.g. `Crimson-Sun/hermes-hunter`, `hermes-hunter`).
+- **`HUNTER_REPO` and `HUNTER_FLY_APP` env vars** (`gateway/entrypoint.sh`) — written to `~/.hermes/.env` when set, giving the agent context about where the Hunter's code and deployment live. These are not secrets — just pointers (e.g. `kaminocorp/hermes-hunter`, `hermes-hunter`).
 - **Environment variable documentation** (`.env.example`) — `GITHUB_TOKEN`, `FLY_API_TOKEN`, `HUNTER_REPO`, and `HUNTER_FLY_APP` with commented-out examples.
 - **`docs/vision.md`** — comprehensive architecture document for the Hermes Hunter system: two-agent hierarchy (Master/Hunter), Elephantasm integration, budget system, self-improvement loops, safety guardrails, and the A/B experiment (Prime vs Alpha).
 - **`docs/next-steps.md`** — step-by-step setup instructions for creating the Hunter GitHub repo, generating a fine-grained PAT, creating the Hunter Fly app, generating a deploy token, and setting all secrets on hermes-alpha.
