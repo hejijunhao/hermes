@@ -47,6 +47,11 @@ class TestParseModelInput:
         assert provider == "zai"
         assert model == "glm-5"
 
+    def test_evolink_provider_alias_resolved(self):
+        provider, model = parse_model_input("evolink-ai:evolink/auto", "openrouter")
+        assert provider == "evolink"
+        assert model == "evolink/auto"
+
     def test_no_slash_no_colon_keeps_provider(self):
         provider, model = parse_model_input("gpt-5.4", "openrouter")
         assert provider == "openrouter"
@@ -91,6 +96,10 @@ class TestCuratedModelsForProvider:
         models = curated_models_for_provider("zai")
         assert any("glm" in m[0] for m in models)
 
+    def test_evolink_returns_curated_models(self):
+        models = curated_models_for_provider("evolink")
+        assert ("evolink/auto", "") in models
+
     def test_unknown_provider_returns_empty(self):
         assert curated_models_for_provider("totally-unknown") == []
 
@@ -106,6 +115,7 @@ class TestNormalizeProvider:
         assert normalize_provider("glm") == "zai"
         assert normalize_provider("kimi") == "kimi-coding"
         assert normalize_provider("moonshot") == "kimi-coding"
+        assert normalize_provider("evolink-ai") == "evolink"
 
     def test_case_insensitive(self):
         assert normalize_provider("OpenRouter") == "openrouter"
@@ -124,6 +134,9 @@ class TestProviderModelIds:
 
     def test_zai_returns_glm_models(self):
         assert "glm-5" in provider_model_ids("zai")
+
+    def test_evolink_returns_models(self):
+        assert "evolink/auto" in provider_model_ids("evolink")
 
 
 # -- fetch_api_models --------------------------------------------------------
@@ -211,6 +224,11 @@ class TestValidateApiFallback:
 
     def test_zai_known_model_accepted_when_api_down(self):
         result = _validate("glm-5", provider="zai", api_models=None)
+        assert result["accepted"] is True
+        assert result["persist"] is True
+
+    def test_evolink_known_model_accepted_when_api_down(self):
+        result = _validate("evolink/auto", provider="evolink", api_models=None)
         assert result["accepted"] is True
         assert result["persist"] is True
 

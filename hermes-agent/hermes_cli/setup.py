@@ -626,6 +626,7 @@ def setup_model_provider(config: dict):
         "Kimi / Moonshot (Kimi coding models)",
         "MiniMax (global endpoint)",
         "MiniMax China (mainland China endpoint)",
+        "EvoLink (OpenAI-compatible API gateway)",
     ]
     if keep_label:
         provider_choices.append(keep_label)
@@ -1004,7 +1005,40 @@ def setup_model_provider(config: dict):
         _update_config_for_provider("minimax-cn", pconfig.inference_base_url)
         _set_model_provider(config, "minimax-cn", pconfig.inference_base_url)
 
-    # else: provider_idx == 8 (Keep current) — only shown when a provider already exists
+    elif provider_idx == 8:  # EvoLink
+        selected_provider = "evolink"
+        print()
+        print_header("EvoLink API Key")
+        pconfig = PROVIDER_REGISTRY["evolink"]
+        print_info(f"Provider: {pconfig.name}")
+        print_info(f"Base URL: {pconfig.inference_base_url}")
+        print_info("Get your API key at: https://evolink.ai/")
+        print()
+
+        existing_key = get_env_value("EVOLINK_API_KEY")
+        if existing_key:
+            print_info(f"Current: {existing_key[:8]}... (configured)")
+            if prompt_yes_no("Update API key?", False):
+                api_key = prompt("  EvoLink API key", password=True)
+                if api_key:
+                    save_env_value("EVOLINK_API_KEY", api_key)
+                    print_success("EvoLink API key updated")
+        else:
+            api_key = prompt("  EvoLink API key", password=True)
+            if api_key:
+                save_env_value("EVOLINK_API_KEY", api_key)
+                print_success("EvoLink API key saved")
+            else:
+                print_warning("Skipped - agent won't work without an API key")
+
+        # Clear custom endpoint vars if switching
+        if existing_custom:
+            save_env_value("OPENAI_BASE_URL", "")
+            save_env_value("OPENAI_API_KEY", "")
+        _update_config_for_provider("evolink", pconfig.inference_base_url)
+        _set_model_provider(config, "evolink", pconfig.inference_base_url)
+
+    # else: keep current — only shown when a provider already exists
 
     # ── OpenRouter API Key for tools (if not already set) ──
     # Tools (vision, web, MoA) use OpenRouter independently of the main provider.
@@ -1017,6 +1051,7 @@ def setup_model_provider(config: dict):
         "kimi-coding",
         "minimax",
         "minimax-cn",
+        "evolink",
     ) and not get_env_value("OPENROUTER_API_KEY"):
         print()
         print_header("OpenRouter API Key (for tools)")
@@ -1156,6 +1191,22 @@ def setup_model_provider(config: dict):
             if model_idx < len(minimax_models):
                 _set_default_model(config, minimax_models[model_idx])
             elif model_idx == len(minimax_models):
+                custom = prompt("Enter model name")
+                if custom:
+                    _set_default_model(config, custom)
+            # else: keep current
+        elif selected_provider == "evolink":
+            evolink_models = ["evolink/auto", "gpt-5.5", "gpt-5.4", "gpt-5.2", "gpt-5.1"]
+            model_choices = list(evolink_models)
+            model_choices.append("Custom model")
+            model_choices.append(f"Keep current ({current_model})")
+
+            keep_idx = len(model_choices) - 1
+            model_idx = prompt_choice("Select default model:", model_choices, keep_idx)
+
+            if model_idx < len(evolink_models):
+                _set_default_model(config, evolink_models[model_idx])
+            elif model_idx == len(evolink_models):
                 custom = prompt("Enter model name")
                 if custom:
                     _set_default_model(config, custom)

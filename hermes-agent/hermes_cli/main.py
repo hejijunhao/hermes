@@ -750,6 +750,7 @@ def cmd_model(args):
         "kimi-coding": "Kimi / Moonshot",
         "minimax": "MiniMax",
         "minimax-cn": "MiniMax (China)",
+        "evolink": "EvoLink",
         "custom": "Custom endpoint",
     }
     active_label = provider_labels.get(active, active)
@@ -768,6 +769,7 @@ def cmd_model(args):
         ("kimi-coding", "Kimi / Moonshot (Moonshot AI direct API)"),
         ("minimax", "MiniMax (global direct API)"),
         ("minimax-cn", "MiniMax China (domestic direct API)"),
+        ("evolink", "EvoLink (OpenAI-compatible API gateway)"),
     ]
 
     # Add user-defined custom providers from config.yaml
@@ -834,7 +836,7 @@ def cmd_model(args):
         _remove_custom_provider(config)
     elif selected_provider == "kimi-coding":
         _model_flow_kimi(config, current_model)
-    elif selected_provider in ("zai", "minimax", "minimax-cn"):
+    elif selected_provider in ("zai", "minimax", "minimax-cn", "evolink"):
         _model_flow_api_key_provider(config, selected_provider, current_model)
 
 
@@ -1361,6 +1363,13 @@ _PROVIDER_MODELS = {
         "MiniMax-M2.5",
         "MiniMax-M2.5-highspeed",
         "MiniMax-M2.1",
+    ],
+    "evolink": [
+        "evolink/auto",
+        "gpt-5.5",
+        "gpt-5.4",
+        "gpt-5.2",
+        "gpt-5.1",
     ],
 }
 
@@ -2035,7 +2044,7 @@ For more help on a command:
     )
     chat_parser.add_argument(
         "--provider",
-        choices=["auto", "openrouter", "nous", "openai-codex", "zai", "kimi-coding", "minimax", "minimax-cn"],
+        choices=["auto", "openrouter", "nous", "openai-codex", "zai", "kimi-coding", "minimax", "minimax-cn", "evolink"],
         default=None,
         help="Inference provider (default: auto)"
     )

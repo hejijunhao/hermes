@@ -370,6 +370,22 @@ OPTIONAL_ENV_VARS = {
         "category": "provider",
         "advanced": True,
     },
+    "EVOLINK_API_KEY": {
+        "description": "EvoLink API key",
+        "prompt": "EvoLink API key",
+        "url": "https://evolink.ai/",
+        "password": True,
+        "category": "provider",
+        "advanced": True,
+    },
+    "EVOLINK_BASE_URL": {
+        "description": "EvoLink base URL override",
+        "prompt": "EvoLink base URL (leave empty for default)",
+        "url": None,
+        "password": False,
+        "category": "provider",
+        "advanced": True,
+    },
 
     # ── Tool API keys ──
     "FIRECRAWL_API_KEY": {
@@ -898,6 +914,7 @@ _COMMENTED_SECTIONS = """
 #   kimi-coding  (KIMI_API_KEY)        — Kimi / Moonshot
 #   minimax      (MINIMAX_API_KEY)     — MiniMax
 #   minimax-cn   (MINIMAX_CN_API_KEY)  — MiniMax (China)
+#   evolink      (EVOLINK_API_KEY)     — EvoLink
 #
 # For custom OpenAI-compatible endpoints, add base_url and api_key_env.
 #

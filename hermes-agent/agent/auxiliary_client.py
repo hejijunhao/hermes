@@ -10,7 +10,7 @@ Resolution order for text tasks (auto mode):
   3. Custom endpoint (OPENAI_BASE_URL + OPENAI_API_KEY)
   4. Codex OAuth (Responses API via chatgpt.com with gpt-5.3-codex,
      wrapped to look like a chat.completions client)
-  5. Direct API-key providers (z.ai/GLM, Kimi/Moonshot, MiniMax, MiniMax-CN)
+  5. Direct API-key providers (z.ai/GLM, Kimi/Moonshot, MiniMax, EvoLink)
      — checked via PROVIDER_REGISTRY entries with auth_type='api_key'
   6. None
 
@@ -19,7 +19,7 @@ Resolution order for vision/multimodal tasks (auto mode):
   2. Nous Portal
   3. Codex OAuth (gpt-5.3-codex supports vision via Responses API)
   4. Custom endpoint (for local vision models: Qwen-VL, LLaVA, Pixtral, etc.)
-  5. None  (API-key providers like z.ai/Kimi/MiniMax are skipped —
+  5. None  (API-key providers like z.ai/Kimi/MiniMax/EvoLink are skipped —
      they may not support multimodal)
 
 Per-task provider overrides (e.g. AUXILIARY_VISION_PROVIDER,
@@ -51,6 +51,7 @@ _API_KEY_PROVIDER_AUX_MODELS: Dict[str, str] = {
     "kimi-coding": "kimi-k2-turbo-preview",
     "minimax": "MiniMax-M2.5-highspeed",
     "minimax-cn": "MiniMax-M2.5-highspeed",
+    "evolink": "evolink/auto",
 }
 
 # OpenRouter app attribution headers
@@ -548,7 +549,7 @@ def resolve_provider_client(
     Args:
         provider: Provider identifier.  One of:
             "openrouter", "nous", "openai-codex" (or "codex"),
-            "zai", "kimi-coding", "minimax", "minimax-cn",
+            "zai", "kimi-coding", "minimax", "minimax-cn", "evolink",
             "custom" (OPENAI_BASE_URL + OPENAI_API_KEY),
             "auto" (full auto-detection chain).
         model: Model slug override.  If None, uses the provider's default
