@@ -140,6 +140,14 @@ PROVIDER_REGISTRY: Dict[str, ProviderConfig] = {
         api_key_env_vars=("MINIMAX_CN_API_KEY",),
         base_url_env_var="MINIMAX_CN_BASE_URL",
     ),
+    "evolink": ProviderConfig(
+        id="evolink",
+        name="EvoLink",
+        auth_type="api_key",
+        inference_base_url="https://direct.evolink.ai/v1",
+        api_key_env_vars=("EVOLINK_API_KEY",),
+        base_url_env_var="EVOLINK_BASE_URL",
+    ),
 }
 
 
@@ -506,7 +514,7 @@ def resolve_provider(
     1. active_provider in auth.json with valid credentials
     2. Explicit CLI api_key/base_url -> "openrouter"
     3. OPENAI_API_KEY or OPENROUTER_API_KEY env vars -> "openrouter"
-    4. Provider-specific API keys (GLM, Kimi, MiniMax) -> that provider
+    4. Provider-specific API keys (GLM, Kimi, MiniMax, EvoLink) -> that provider
     5. Fallback: "openrouter"
     """
     normalized = (requested or "auto").strip().lower()
@@ -1412,7 +1420,7 @@ def get_codex_auth_status() -> Dict[str, Any]:
 
 
 def get_api_key_provider_status(provider_id: str) -> Dict[str, Any]:
-    """Status snapshot for API-key providers (z.ai, Kimi, MiniMax)."""
+    """Status snapshot for API-key providers (z.ai, Kimi, MiniMax, EvoLink)."""
     pconfig = PROVIDER_REGISTRY.get(provider_id)
     if not pconfig or pconfig.auth_type != "api_key":
         return {"configured": False}
